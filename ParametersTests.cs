@@ -69,12 +69,12 @@ namespace ExtensionKit.Autotests
             IWebElement submitButton = _driver.FindElement(By.CssSelector(".btn"));
             WaitForElementToBeInteractable(5, ".btn");
             submitButton.Click();
-            WaitForElementToAppear(20, "#i0118");
+            /*WaitForElementToAppear(20, "#i0118");
             IWebElement password = _driver.FindElement(By.Id("i0118"));
             password.SendKeys("Wolwhaljo_15");
             IWebElement submitButton2 = _driver.FindElement(By.CssSelector(".btn"));
             WaitForElementToBeInteractable(5, ".btn");
-            submitButton2.Click();
+            submitButton2.Click();*/
             WaitForElementToAppear(20, "#mat-dialog-0");
             IWebElement understoodButton = _driver.FindElement(By.XPath("//span[.='Understood']"));
             understoodButton.Click();

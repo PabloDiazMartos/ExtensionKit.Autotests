@@ -49,12 +49,12 @@ namespace ExtensionKit.Autotests
             IWebElement submitButton = _driver.FindElement(By.CssSelector(".btn"));
             WaitForElementToBeInteractable(5, ".btn");
             submitButton.Click();
-            WaitForElementToAppear(20, "#i0118");
+            /*WaitForElementToAppear(20, "#i0118");
             IWebElement password = _driver.FindElement(By.Id("i0118"));
             password.SendKeys("Wolwhaljo_15");
             IWebElement submitButton2 = _driver.FindElement(By.CssSelector(".btn"));
             WaitForElementToBeInteractable(5, ".btn");
-            submitButton2.Click();
+            submitButton2.Click();*/
             WaitForElementToAppear(20, "#mat-dialog-0");
             IWebElement understoodButton = _driver.FindElement(By.XPath("//span[.='Understood']"));
             understoodButton.Click();
@@ -180,6 +180,7 @@ namespace ExtensionKit.Autotests
             _driver.Quit();
         }
 
+
         [TestMethod]
         public void NewFlowCreation()
         {
@@ -196,10 +197,12 @@ namespace ExtensionKit.Autotests
             WaitForElementToBeInteractable(10, "[placeholder='Name']");
             IWebElement webhookName = _driver.FindElement(By.CssSelector("[placeholder='Name']"));
             webhookName.SendKeys("test");
-            var authentication = _driver.FindElement(By.CssSelector(".mat-select-placeholder"));
-            var selectAuthentication = new SelectElement(authentication);
+            IWebElement authentication = _driver.FindElement(By.CssSelector(".mat-select-placeholder"));
+            authentication.Click();
+            IWebElement noneOption = _driver.FindElement(By.CssSelector("div.mat-select-panel > mat-option:nth-of-type(1) > .mat-option-text"));
+            noneOption.Click();
 
-
+            IWebElement actionButton = _driver.FindElement(By.CssSelector(".initials"));
 
 
 

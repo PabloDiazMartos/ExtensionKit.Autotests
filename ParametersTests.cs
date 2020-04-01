@@ -58,28 +58,26 @@ namespace ExtensionKit.Autotests
 
         public void TestInitialize()
         {
-            _driver = new ChromeDriver();
-            action = new Actions(_driver);
-
             _driver.Manage().Cookies.DeleteAllCookies();
             _driver.Navigate().GoToUrl("https://u4ek-dev-portal.azurewebsites.net/tenant/admin");
             _driver.Manage().Window.Maximize();
             IWebElement user = _driver.FindElement(By.Id("i0116"));
-            user.SendKeys("pablo.diaz.martos@unit4.com");
+            user.SendKeys("admin@u4ppsandboxdirectory.onmicrosoft.com");
             IWebElement submitButton = _driver.FindElement(By.CssSelector(".btn"));
             WaitForElementToBeInteractable(5, ".btn");
             submitButton.Click();
-            /*WaitForElementToAppear(20, "#i0118");
+            WaitForElementToAppear(20, "#i0118");
             IWebElement password = _driver.FindElement(By.Id("i0118"));
-            password.SendKeys("Wolwhaljo_15");
+            password.SendKeys("Sandbox1");
             IWebElement submitButton2 = _driver.FindElement(By.CssSelector(".btn"));
             WaitForElementToBeInteractable(5, ".btn");
-            submitButton2.Click();*/
+            submitButton2.Click();
+            IWebElement noStaySigned = _driver.FindElement(By.CssSelector("#idBtn_Back"));
+            WaitForElementToBeInteractable(5, "#idBtn_Back");
+            noStaySigned.Click();
             WaitForElementToAppear(20, "#mat-dialog-0");
             IWebElement understoodButton = _driver.FindElement(By.XPath("//span[.='Understood']"));
             understoodButton.Click();
-            IWebElement parametersButton = _driver.FindElement(By.CssSelector("a[href='/parameters'] .u4-main-nav-item-text"));
-            parametersButton.Click();
         }
         [TestMethod]
         public void TestIfBasicItemsExist()

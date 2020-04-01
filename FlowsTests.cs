@@ -15,23 +15,46 @@ namespace ExtensionKit.Autotests
 
         public static IWebDriver _driver;
         public static Actions action;
-        public void WaitForElementToBeInteractable(int seconds, string cssSelector)
+        public static void WaitForElementToBeInteractable(int seconds, string cssSelector)
         {
             var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(seconds));
             var actionContainer = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.CssSelector(cssSelector)));
 
         }
-        public void WaitForElementToAppear(int seconds, string cssSelector)
+        public static void WaitForElementToAppear(int seconds, string cssSelector)
         {
             var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(seconds));
             var popUp = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.CssSelector(cssSelector)));
 
         }
 
-        public void StartNewFlowCreation()
+        public static void StartNewFlowCreation()
         {
             IWebElement newFlowButton = _driver.FindElement(By.XPath("//span[contains(.,'New flow')]"));
             newFlowButton.Click();
+        }
+
+        public static bool ValidateFlowExists(string flowName)
+        {
+            WaitForElementToBeInteractable(10, ".fa-search");
+            IWebElement searchIcon = _driver.FindElement(By.CssSelector(".fa-search"));
+            searchIcon.Click();
+            IWebElement searchBar = _driver.FindElement(By.CssSelector(".mat-input-element"));
+            searchBar.SendKeys(flowName);
+            searchBar.SendKeys(Keys.Enter);
+
+            WaitForElementToAppear(20, ".flow-card--body-title:first-of-type");
+
+            var flowsListTittles = _driver.FindElements(By.CssSelector(".flow-card--body-title"));
+            bool listIsCorrect = true;
+
+
+            foreach (IWebElement ElementInResults in flowsListTittles)
+            {
+                if (!(ElementInResults.Text.ToLower().Contains("test")))
+                    listIsCorrect = false;
+            }
+            return listIsCorrect;
         }
 
         [TestInitialize]
@@ -45,16 +68,19 @@ namespace ExtensionKit.Autotests
             _driver.Navigate().GoToUrl("https://u4ek-dev-portal.azurewebsites.net/tenant/admin");
             _driver.Manage().Window.Maximize();
             IWebElement user = _driver.FindElement(By.Id("i0116"));
-            user.SendKeys("pablo.diaz.martos@unit4.com");
+            user.SendKeys("admin@u4ppsandboxdirectory.onmicrosoft.com");
             IWebElement submitButton = _driver.FindElement(By.CssSelector(".btn"));
             WaitForElementToBeInteractable(5, ".btn");
             submitButton.Click();
-            /*WaitForElementToAppear(20, "#i0118");
+            WaitForElementToAppear(20, "#i0118");
             IWebElement password = _driver.FindElement(By.Id("i0118"));
-            password.SendKeys("Wolwhaljo_15");
+            password.SendKeys("Sandbox1");
             IWebElement submitButton2 = _driver.FindElement(By.CssSelector(".btn"));
             WaitForElementToBeInteractable(5, ".btn");
-            submitButton2.Click();*/
+            submitButton2.Click();
+            IWebElement noStaySigned = _driver.FindElement(By.CssSelector("#idBtn_Back"));
+            WaitForElementToBeInteractable(5, "#idBtn_Back");
+            noStaySigned.Click();
             WaitForElementToAppear(20, "#mat-dialog-0");
             IWebElement understoodButton = _driver.FindElement(By.XPath("//span[.='Understood']"));
             understoodButton.Click();
@@ -190,6 +216,14 @@ namespace ExtensionKit.Autotests
             IWebElement triggerButton = _driver.FindElement(By.CssSelector("div[title='Trigger'] > .text-container"));
             triggerButton.Click();
 
+            WaitForElementToBeInteractable(10, ".edit-btn");
+            IWebElement flowTittleIcon = _driver.FindElement(By.CssSelector(".edit-btn"));
+            flowTittleIcon.Click();
+
+            WaitForElementToBeInteractable(10, "input[placeholder='Give a name to your flow!']");
+            IWebElement flowTittleTextBox = _driver.FindElement(By.CssSelector("input[placeholder='Give a name to your flow!']"));
+            flowTittleTextBox.SendKeys("Autotest Flow");
+
             WaitForElementToBeInteractable(10, "div[title='Webhook'] > .text-container");
             IWebElement webhookButton = _driver.FindElement(By.CssSelector("div[title='Webhook'] > .text-container"));
             webhookButton.Click();
@@ -203,9 +237,25 @@ namespace ExtensionKit.Autotests
             noneOption.Click();
 
             IWebElement actionButton = _driver.FindElement(By.CssSelector(".initials"));
+            actionButton.Click();
 
+            WaitForElementToBeInteractable(10, "div[title='Stop Execution'] .mat-icon");
+            IWebElement stopActionButton = _driver.FindElement(By.CssSelector("div[title='Stop Execution'] .mat-icon"));
+            stopActionButton.Click();
 
+            IWebElement stopWith = _driver.FindElement(By.CssSelector(".mat-select-placeholder"));
+            stopWith.Click();
+            IWebElement successOption = _driver.FindElement(By.CssSelector("div.mat-select-panel > mat-option:nth-of-type(1) > .mat-option-text"));
+            successOption.Click();
 
+ 
+            IWebElement saveFlowButton = _driver.FindElement(By.XPath("//button[@class='mat-button mat-button-base mat-primary ng-star-inserted']"));
+            saveFlowButton.Click();
+
+            Assert.IsTrue(ValidateFlowExists("Autotest Flow"),"Flow not created");
+
+            _driver.Quit();
         }
+
     }
 }

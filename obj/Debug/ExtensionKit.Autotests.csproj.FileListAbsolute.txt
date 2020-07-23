@@ -12,14 +12,14 @@ C:\Users\PMartos\source\repos\ExtensionKit.Autotests\bin\Debug\Microsoft.VisualS
 C:\Users\PMartos\source\repos\ExtensionKit.Autotests\bin\Debug\nunit.framework.dll
 C:\Users\PMartos\source\repos\ExtensionKit.Autotests\bin\Debug\SeleniumExtras.WaitHelpers.dll
 C:\Users\PMartos\source\repos\ExtensionKit.Autotests\bin\Debug\WebDriver.dll
+C:\Users\PMartos\source\repos\ExtensionKit.Autotests\bin\Debug\WebDriver.Support.dll
 C:\Users\PMartos\source\repos\ExtensionKit.Autotests\bin\Debug\Microsoft.VisualStudio.TestPlatform.TestFramework.xml
 C:\Users\PMartos\source\repos\ExtensionKit.Autotests\bin\Debug\Microsoft.VisualStudio.TestPlatform.TestFramework.Extensions.xml
 C:\Users\PMartos\source\repos\ExtensionKit.Autotests\bin\Debug\nunit.framework.pdb
 C:\Users\PMartos\source\repos\ExtensionKit.Autotests\bin\Debug\nunit.framework.xml
 C:\Users\PMartos\source\repos\ExtensionKit.Autotests\bin\Debug\WebDriver.xml
-C:\Users\PMartos\source\repos\ExtensionKit.Autotests\obj\Debug\ExtensionKit.Autotests.csprojAssemblyReference.cache
+C:\Users\PMartos\source\repos\ExtensionKit.Autotests\bin\Debug\WebDriver.Support.xml
 C:\Users\PMartos\source\repos\ExtensionKit.Autotests\obj\Debug\ExtensionKit.Autotests.csproj.CopyComplete
 C:\Users\PMartos\source\repos\ExtensionKit.Autotests\obj\Debug\ExtensionKit.Autotests.dll
 C:\Users\PMartos\source\repos\ExtensionKit.Autotests\obj\Debug\ExtensionKit.Autotests.pdb
-C:\Users\PMartos\source\repos\ExtensionKit.Autotests\bin\Debug\WebDriver.Support.dll
-C:\Users\PMartos\source\repos\ExtensionKit.Autotests\bin\Debug\WebDriver.Support.xml
+C:\Users\PMartos\source\repos\ExtensionKit.Autotests\obj\Debug\ExtensionKit.Autotests.csprojAssemblyReference.cache

@@ -1,0 +1,1 @@
+Project containing te autotests for Extension Kit. Currently having flows management covered.

@@ -65,6 +65,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FlowsTests.cs" />
+    <Compile Include="Helpers.cs" />
     <Compile Include="ParametersTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

@@ -1,245 +1,106 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using System;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Interactions;
-using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
-using System;
-
+using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support.UI;
+using OpenQA.Selenium.Interactions;
+using System.Threading;
 
 namespace ExtensionKit.Autotests
 {
     [TestClass]
     public class FlowsTests
     {
-
         public static IWebDriver _driver;
         public static Actions action;
-        public static void WaitForElementToBeInteractable(int seconds, string cssSelector)
-        {
-            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(seconds));
-            var actionContainer = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(By.CssSelector(cssSelector)));
-
-        }
-        public static void WaitForElementToAppear(int seconds, string cssSelector)
-        {
-            var wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(seconds));
-            var popUp = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementIsVisible(By.CssSelector(cssSelector)));
-
-        }
-
-        public static void StartNewFlowCreation()
-        {
-            IWebElement newFlowButton = _driver.FindElement(By.XPath("//span[contains(.,'New flow')]"));
-            newFlowButton.Click();
-        }
-
-        public static bool ValidateFlowExists(string flowName)
-        {
-            WaitForElementToBeInteractable(10, ".fa-search");
-            IWebElement searchIcon = _driver.FindElement(By.CssSelector(".fa-search"));
-            searchIcon.Click();
-            IWebElement searchBar = _driver.FindElement(By.CssSelector(".mat-input-element"));
-            searchBar.SendKeys(flowName);
-            searchBar.SendKeys(Keys.Enter);
-
-            WaitForElementToAppear(20, ".flow-card--body-title:first-of-type");
-
-            var flowsListTittles = _driver.FindElements(By.CssSelector(".flow-card--body-title"));
-            bool listIsCorrect = true;
-
-
-            foreach (IWebElement ElementInResults in flowsListTittles)
-            {
-                if (!(ElementInResults.Text.ToLower().Contains("test")))
-                    listIsCorrect = false;
-            }
-            return listIsCorrect;
-        }
+        public static Helpers _helpers = new Helpers();
 
         [TestInitialize]
-
         public void TestInitialize()
         {
             _driver = new ChromeDriver();
             action = new Actions(_driver);
 
-            _driver.Manage().Cookies.DeleteAllCookies();
-            _driver.Navigate().GoToUrl("https://u4ek-dev-portal.azurewebsites.net/tenant/admin");
-            _driver.Manage().Window.Maximize();
-            IWebElement user = _driver.FindElement(By.Id("i0116"));
-            user.SendKeys("admin@u4ppsandboxdirectory.onmicrosoft.com");
-            IWebElement submitButton = _driver.FindElement(By.CssSelector(".btn"));
-            WaitForElementToBeInteractable(5, ".btn");
-            submitButton.Click();
-            WaitForElementToAppear(20, "#i0118");
-            IWebElement password = _driver.FindElement(By.Id("i0118"));
-            password.SendKeys("Sandbox1");
-            IWebElement submitButton2 = _driver.FindElement(By.CssSelector(".btn"));
-            WaitForElementToBeInteractable(5, ".btn");
-            submitButton2.Click();
-            IWebElement noStaySigned = _driver.FindElement(By.CssSelector("#idBtn_Back"));
-            WaitForElementToBeInteractable(5, "#idBtn_Back");
-            noStaySigned.Click();
-            WaitForElementToAppear(20, "#mat-dialog-0");
-            IWebElement understoodButton = _driver.FindElement(By.XPath("//span[.='Understood']"));
-            understoodButton.Click();
+            _helpers.Login("admin@u4ppsandboxdirectory.onmicrosoft.com", "Sandbox1", _driver);
+
+            _helpers.WaitForElementToBeInteractable(5, "a[href='/flows'] .u4-main-nav-item-text", _driver);
+            IWebElement flowsSection = _driver.FindElement(By.CssSelector("a[href='/flows'] .u4-main-nav-item-text"));
+            flowsSection.Click();
+
         }
 
-        [TestMethod]
-        public void TestIfFlowSectionIsDisplayed()
+        [TestCleanup]
+        public void TestCleanup()
         {
-            IWebElement flowsButton = _driver.FindElement(By.CssSelector("a[href='/flows'] .u4-main-nav-item-text"));
-            flowsButton.Click();
+            _driver.Navigate().GoToUrl("https://u4ek-dev-portal.azurewebsites.net/flows");
+            try
+            {
+                DeleteFlow("Autotest flow");
+            }
+            catch (OpenQA.Selenium.WebDriverTimeoutException e)
+            {
 
-            IWebElement flowsView = _driver.FindElement(By.CssSelector("div[infinite-scroll]"));
-            IWebElement newFlowButton = _driver.FindElement(By.CssSelector(".mat-button-wrapper"));
-            IWebElement searchIcon = _driver.FindElement(By.CssSelector(".fa-search"));
-
-
-            Assert.IsTrue(flowsView.Displayed, "Flows view is not correctly displayed");
-            Assert.IsTrue(newFlowButton.Displayed, "New flow button is not correctly displayed");
-            Assert.IsTrue(searchIcon.Displayed, "Search icon is not correctly displayed");
-
+            }
             _driver.Quit();
         }
 
-        [TestMethod]
-        public void TestSearchFlowByTittle()
+        public void DeleteFlow(string flowName)
         {
+            searchFlowByName(flowName);
+            _helpers.WaitForElementToAppear(5, ".flow-card--body-title", _driver);
+
+            IWebElement actionsButton = _driver.FindElement(By.CssSelector("button.mat-menu-trigger .mat-icon"));
+            actionsButton.Click();
+
+            IWebElement deleteButton = _driver.FindElement(By.CssSelector(".delete-flow"));
+            deleteButton.Click();
+
+            _helpers.WaitForElementToAppear(5, "mat-dialog-actions.mat-dialog-actions > .mat-warn", _driver);
+            IWebElement ConfirmButton = _driver.FindElement(By.CssSelector("mat-dialog-actions.mat-dialog-actions > .mat-warn"));
+            ConfirmButton.Click();
+        }
+
+        public void searchFlowByName(string flowName)
+        {
+            _helpers.WaitForElementToBeInteractable(5, ".fa-search", _driver);
             IWebElement searchIcon = _driver.FindElement(By.CssSelector(".fa-search"));
             searchIcon.Click();
             IWebElement searchBar = _driver.FindElement(By.CssSelector(".mat-input-element"));
-            searchBar.SendKeys("Test");
+            searchBar.SendKeys(flowName);
             searchBar.SendKeys(Keys.Enter);
-
-            WaitForElementToAppear(20, ".flow-card--body-title:first-of-type");
-
-            var flowsListTittles = _driver.FindElements(By.CssSelector(".flow-card--body-title"));
-            bool listIsCorrect = true;
-
-
-            foreach (IWebElement ElementInResults in flowsListTittles)
-            {
-                if (!(ElementInResults.Text.ToLower().Contains("test")))
-                    listIsCorrect = false;
-            }
-
-            Assert.IsTrue(listIsCorrect, "Search results not loaded");
-
-            _driver.Quit();
         }
 
-        [TestMethod]
-        public void TestCreateNewFlowScreen()
+        public void createAutotestFlow()
         {
-            StartNewFlowCreation();
-            WaitForElementToAppear(20, ".label");
+            IWebElement newFlowButton = _driver.FindElement(By.XPath("//span[contains(.,'New flow')]"));
+            newFlowButton.Click();
 
-            IWebElement flowName = _driver.FindElement(By.CssSelector(".label"));
-            IWebElement triggerIcon = _driver.FindElement(By.CssSelector("div[title='Trigger'] .initials"));
-            IWebElement firstActionIcon = _driver.FindElement(By.CssSelector("div[title='Action'] > .text-container"));
-            IWebElement addActionIcon = _driver.FindElement(By.CssSelector(".mid-step-content"));
-            IWebElement overviewSection = _driver.FindElement(By.CssSelector(".flow-form--body-dynamic-section"));
-            IWebElement saveButton = _driver.FindElement(By.XPath("//span[.='Save flow']"));
-            IWebElement cancelButton = _driver.FindElement(By.CssSelector("button[routerlink='/flows'] > .mat-button-wrapper"));
-            bool saveButtonClickable = SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(saveButton).Equals(true);
-
-            Assert.IsTrue(flowName.Displayed, "Flows' name is not displayed");
-            Assert.IsTrue(triggerIcon.Displayed, "Trigger's icon is not displayed");
-            Assert.IsTrue(firstActionIcon.Displayed, "First action's icon is not displayed");
-            Assert.IsTrue(addActionIcon.Displayed, "Add step's icon is not displayed");
-            Assert.IsTrue(overviewSection.Displayed, "Overview section is not displayed");
-            Assert.IsTrue(saveButton.Displayed, "Save button is not displayed");
-            Assert.IsTrue(cancelButton.Displayed, "Cancel button is not displayed");
-            Assert.IsFalse(saveButtonClickable, "Save button is not disabled");
-
-            _driver.Quit();
-        }
-
-        [TestMethod]
-        public void TestHideLeftPannel()
-        {
-            IWebElement hideButton = _driver.FindElement(By.CssSelector("button.u4-main-sidenav--header--nav--button-collapse .mat-icon"));
-
-            hideButton.Click();
-            IWebElement leftPannel = _driver.FindElement(By.CssSelector(".mat-drawer"));
-            String leftPannelClass = leftPannel.GetAttribute("class");
-
-            Assert.IsTrue(leftPannelClass.Contains("collapsed"), "Left pannel is still visible");
-
-            _driver.Quit();
-        }
-
-        [TestMethod]
-        public void TestUnhideLeftPannel()
-        {
-            IWebElement hideButton = _driver.FindElement(By.CssSelector("button.u4-main-sidenav--header--nav--button-collapse .mat-icon"));
-
-            hideButton.Click();
-            hideButton.Click();
-
-            IWebElement leftPannel = _driver.FindElement(By.CssSelector(".mat-drawer-inner-container"));
-            String leftPannelClass = leftPannel.GetAttribute("class");
-
-            Assert.IsFalse(leftPannelClass.Contains("collapsed"), "Left pannel is still hidden");
-
-            _driver.Quit();
-        }
-
-        [TestMethod]
-        public void TestDiscardFlowCreationAndOrEdition()
-        {
-            StartNewFlowCreation();
-            WaitForElementToAppear(10, "button[routerlink='/flows']");
-
-            IWebElement cancelButton = _driver.FindElement(By.CssSelector("button[routerlink='/flows']"));
-            cancelButton.Click();
-
-            WaitForElementToAppear(10, ".mat-dialog-actions");
-            IWebElement discardButton = _driver.FindElement(By.CssSelector("button.mat-warn > .mat-button-wrapper"));
-            discardButton.Click();
-
-            WaitForElementToAppear(20, "div[infinite-scroll]");
-            Assert.IsTrue(_driver.Url == "https://u4ek-dev-portal.azurewebsites.net/flows", "Discard flow didn't redirect to flows screen");
-
-            _driver.Quit();
-        }
-
-
-        [TestMethod]
-        public void NewFlowCreation()
-        {
-            StartNewFlowCreation();
-
-            WaitForElementToBeInteractable(10, "div[title='Trigger'] > .text-container");
-            IWebElement triggerButton = _driver.FindElement(By.CssSelector("div[title='Trigger'] > .text-container"));
-            triggerButton.Click();
-
-            WaitForElementToBeInteractable(10, ".edit-btn");
+            _helpers.WaitForElementToBeInteractable(5, ".edit-btn", _driver);
             IWebElement flowTittleIcon = _driver.FindElement(By.CssSelector(".edit-btn"));
             flowTittleIcon.Click();
 
-            WaitForElementToBeInteractable(10, "input[placeholder='Give a name to your flow!']");
             IWebElement flowTittleTextBox = _driver.FindElement(By.CssSelector("input[placeholder='Give a name to your flow!']"));
             flowTittleTextBox.SendKeys("Autotest Flow");
 
-            WaitForElementToBeInteractable(10, "div[title='Webhook'] > .text-container");
+            IWebElement triggerButton = _driver.FindElement(By.CssSelector("div[title='Trigger'] .initials"));
+            triggerButton.Click();
+
             IWebElement webhookButton = _driver.FindElement(By.CssSelector("div[title='Webhook'] > .text-container"));
             webhookButton.Click();
 
-            WaitForElementToBeInteractable(10, "[placeholder='Name']");
-            IWebElement webhookName = _driver.FindElement(By.CssSelector("[placeholder='Name']"));
-            webhookName.SendKeys("test");
+            _helpers.WaitForElementToBeInteractable(5, "[placeholder='Name']", _driver);
+            IWebElement triggerName = _driver.FindElement(By.CssSelector("[placeholder='Name']"));
+            triggerName.SendKeys("Autotest Trigger");
             IWebElement authentication = _driver.FindElement(By.CssSelector(".mat-select-placeholder"));
             authentication.Click();
             IWebElement noneOption = _driver.FindElement(By.CssSelector("div.mat-select-panel > mat-option:nth-of-type(1) > .mat-option-text"));
             noneOption.Click();
 
-            IWebElement actionButton = _driver.FindElement(By.CssSelector(".initials"));
+            IWebElement actionButton = _driver.FindElement(By.CssSelector("div[title='Action'] > .text-container"));
             actionButton.Click();
 
-            WaitForElementToBeInteractable(10, "div[title='Stop Execution'] .mat-icon");
+            _helpers.WaitForElementToBeInteractable(10, "div[title='Stop Execution'] .mat-icon", _driver);
             IWebElement stopActionButton = _driver.FindElement(By.CssSelector("div[title='Stop Execution'] .mat-icon"));
             stopActionButton.Click();
 
@@ -248,14 +109,282 @@ namespace ExtensionKit.Autotests
             IWebElement successOption = _driver.FindElement(By.CssSelector("div.mat-select-panel > mat-option:nth-of-type(1) > .mat-option-text"));
             successOption.Click();
 
- 
-            IWebElement saveFlowButton = _driver.FindElement(By.XPath("//button[@class='mat-button mat-button-base mat-primary ng-star-inserted']"));
+            IWebElement overviewButton = _driver.FindElement(By.CssSelector("div[title='Overview'] > .text-container"));
+            overviewButton.Click();
+
+            /* IWebElement flowName = _driver.FindElement(By.CssSelector("[placeholder='Flow name']"));
+             IWebElement tenant = _driver.FindElement(By.CssSelector("mat-form-field.mat-form-field-type-mat-select .mat-form-field-infix"));
+             IWebElement flowId = _driver.FindElement(By.CssSelector("[placeholder='Flow Id']"));
+             IWebElement summary = _driver.FindElement(By.XPath("//div[@class='summary']"));
+
+             Assert.IsTrue(flowName.Displayed, "Flow name should be displayed in overview");
+             Assert.IsTrue(tenant.Displayed, "Tenant should be displayed in overview");
+             Assert.IsTrue(flowId.Displayed, "Flow ID should be displayed in overview");
+             Assert.IsTrue(summary.Displayed, "Summary should be displayed in overview");*/
+
+            IWebElement saveFlowButton = _driver.FindElement(By.XPath("//span[.='Save flow']"));
             saveFlowButton.Click();
-
-            Assert.IsTrue(ValidateFlowExists("Autotest Flow"),"Flow not created");
-
-            _driver.Quit();
         }
 
+
+        [TestMethod]
+        public void TestMandatoryDataMissing()
+        {
+            IWebElement newFlowButton = _driver.FindElement(By.XPath("//span[contains(.,'New flow')]"));
+            newFlowButton.Click();
+
+            _helpers.WaitForElementToBeInteractable(5, ".edit-btn", _driver);
+
+            IWebElement triggerButton = _driver.FindElement(By.CssSelector("div[title='Trigger'] .initials"));
+            triggerButton.Click();
+
+            IWebElement webhookButton = _driver.FindElement(By.CssSelector("div[title='Webhook'] > .text-container"));
+            webhookButton.Click();
+
+            _helpers.WaitForElementToBeInteractable(5, "[placeholder='Name']", _driver);
+            IWebElement triggerName = _driver.FindElement(By.CssSelector("[placeholder='Name']"));
+            triggerName.SendKeys("Autotest Trigger");
+            IWebElement authentication = _driver.FindElement(By.CssSelector(".mat-select-placeholder"));
+            authentication.Click();
+            IWebElement noneOption = _driver.FindElement(By.CssSelector("div.mat-select-panel > mat-option:nth-of-type(1) > .mat-option-text"));
+            noneOption.Click();
+
+            IWebElement actionButton = _driver.FindElement(By.CssSelector("div[title='Action'] > .text-container"));
+            actionButton.Click();
+
+            _helpers.WaitForElementToBeInteractable(10, "div[title='Stop Execution'] .mat-icon", _driver);
+            IWebElement stopActionButton = _driver.FindElement(By.CssSelector("div[title='Stop Execution'] .mat-icon"));
+            stopActionButton.Click();
+
+            IWebElement stopWith = _driver.FindElement(By.CssSelector(".mat-select-placeholder"));
+            stopWith.Click();
+            IWebElement successOption = _driver.FindElement(By.CssSelector("div.mat-select-panel > mat-option:nth-of-type(1) > .mat-option-text"));
+            successOption.Click();
+
+            IWebElement overviewButton = _driver.FindElement(By.CssSelector("div[title='Overview'] > .text-container"));
+            overviewButton.Click();
+
+            IWebElement saveFlowButton = _driver.FindElement(By.XPath("//span[.='Save flow']"));
+            Assert.IsFalse(saveFlowButton.GetAttribute("disabled") == "true", "Save button should be disabled");
+        }
+
+        [TestMethod]
+        public void TestSearchFlows()
+        {
+            createAutotestFlow();
+            Thread.Sleep(2000);
+            IWebElement flowsSection = _driver.FindElement(By.CssSelector("a[href='/flows'] .u4-main-nav-item-text"));
+            flowsSection.Click();
+            searchFlowByName("Autotest");
+
+            _helpers.WaitForElementToAppear(20, ".flow-card--body-title:first-of-type", _driver);
+
+            var flowsListTittles = _driver.FindElements(By.CssSelector(".flow-card--body-title"));
+            bool listIsCorrect = true;
+
+
+            foreach (IWebElement ElementInResults in flowsListTittles)
+            {
+                if (!(ElementInResults.Text.ToLower().Contains("test")))
+                    listIsCorrect = false;
+            }
+
+            Assert.IsTrue(listIsCorrect, "Search results should be loaded");
+        }
+
+        [TestMethod]
+        public void TestDeleteFlowFromDefinition()
+        {
+            createAutotestFlow();
+            Thread.Sleep(5000);
+            IWebElement flowsSection = _driver.FindElement(By.CssSelector("a[href='/flows'] .u4-main-nav-item-text"));
+            flowsSection.Click();
+
+            searchFlowByName("Autotest Flow");
+
+            _helpers.WaitForElementToAppear(20, ".flow-card--body-title:first-of-type", _driver);
+            IWebElement searchedFlow = _driver.FindElement(By.CssSelector(".flow-card--body-title:first-of-type"));
+            searchedFlow.Click();
+
+            _helpers.WaitForElementToBeInteractable(5, ".edit-btn", _driver);
+            IWebElement deleteButton = _driver.FindElement(By.XPath("//span[.='Delete']"));
+            deleteButton.Click();
+
+            _helpers.WaitForElementToAppear(10, "mat-dialog-actions.mat-dialog-actions > .mat-warn", _driver);
+            IWebElement ConfirmButton = _driver.FindElement(By.CssSelector("mat-dialog-actions.mat-dialog-actions > .mat-warn"));
+            ConfirmButton.Click();
+
+            searchFlowByName("Autotest Flow");
+            Thread.Sleep(2000);
+            bool deleted;
+            try
+            {
+                searchedFlow = _driver.FindElement(By.CssSelector(".flow-card--body-title:first-of-type"));
+                deleted = false;
+            }
+            catch (OpenQA.Selenium.NoSuchElementException e)
+            {
+                deleted = true;
+            }
+            Assert.IsTrue(deleted, "Flow should have been deleted");
+        }
+
+        [TestMethod]
+        public void TestDeleteFlowFromQuickAccess()
+        {
+            createAutotestFlow();
+            Thread.Sleep(5000);
+            IWebElement flowsSection = _driver.FindElement(By.CssSelector("a[href='/flows'] .u4-main-nav-item-text"));
+            flowsSection.Click();
+
+            searchFlowByName("Autotest Flow");
+            _helpers.WaitForElementToAppear(10, ".flow-card--body-title", _driver);
+
+            IWebElement actionsButton = _driver.FindElement(By.CssSelector("button.mat-menu-trigger .mat-icon"));
+            actionsButton.Click();
+
+            IWebElement deleteButton = _driver.FindElement(By.CssSelector(".delete-flow"));
+            deleteButton.Click();
+
+            _helpers.WaitForElementToAppear(10, "mat-dialog-actions.mat-dialog-actions > .mat-warn", _driver);
+            IWebElement ConfirmButton = _driver.FindElement(By.CssSelector("mat-dialog-actions.mat-dialog-actions > .mat-warn"));
+            ConfirmButton.Click();
+
+            searchFlowByName("Autotest Flow");
+            Thread.Sleep(2000);
+            bool deleted;
+            try
+            {
+                IWebElement searchedFlow = _driver.FindElement(By.CssSelector(".flow-card--body-title:first-of-type"));
+                deleted = false;
+            }
+            catch (OpenQA.Selenium.NoSuchElementException e)
+            {
+                deleted = true;
+            }
+            Assert.IsTrue(deleted, "Flow should have been deleted");
+        }
+        [TestMethod]
+        public void TestDeleteFlowFromAnotherTenantNotPossible()
+        {
+            searchFlowByName("admin to 558");
+            _helpers.WaitForElementToAppear(10, ".flow-card--body-title", _driver);
+
+            IWebElement actionsButton = _driver.FindElement(By.CssSelector("button.mat-menu-trigger .mat-icon"));
+            actionsButton.Click();
+            bool deletebuttonexists;
+            try 
+            { 
+                IWebElement deleteButton = _driver.FindElement(By.CssSelector(".delete-flow"));
+                deleteButton.Click();
+                deletebuttonexists = true;
+            }
+            catch (OpenQA.Selenium.NoSuchElementException e)
+            {
+                deletebuttonexists = false;
+            }
+            Assert.IsFalse(deletebuttonexists, "Delete option should not be available");
+        }
+
+        [TestMethod]
+        public void TestEnableFlowFromAnotherTenantNotPossible()
+        {
+            searchFlowByName("admin to 558");
+            _helpers.WaitForElementToAppear(10, ".flow-card--body-title", _driver);
+
+            IWebElement toggleEnable = _driver.FindElement(By.CssSelector(".mat-slide-toggle-bar"));
+            Assert.IsFalse(toggleEnable.GetAttribute("disabled") == "true", "Enable option should be disabled");
+        }
+
+        [TestMethod]
+        public void TestChangeTriggerAndActionOfAnExistingFlow()
+        {
+            createAutotestFlow();
+            Thread.Sleep(5000);
+            IWebElement flowsSection = _driver.FindElement(By.CssSelector("a[href='/flows'] .u4-main-nav-item-text"));
+            flowsSection.Click();
+
+            searchFlowByName("Autotest Flow");
+
+            _helpers.WaitForElementToAppear(20, ".flow-card--body-title:first-of-type", _driver);
+            IWebElement searchedFlow = _driver.FindElement(By.CssSelector(".flow-card--body-title:first-of-type"));
+            searchedFlow.Click();
+
+            _helpers.WaitForElementToBeInteractable(5, ".edit-btn", _driver);
+            IWebElement triggerButton = _driver.FindElement(By.CssSelector("u4ek-flow-overview-step[type='Trigger'] .step-body .mat-icon"));
+            triggerButton.Click();
+            IWebElement ChangeTriggerButton = _driver.FindElement(By.XPath("//span[.='Change trigger']"));
+            ChangeTriggerButton.Click();
+            IWebElement searchBox = _driver.FindElement(By.CssSelector("[placeholder='Search...']"));
+            searchBox.SendKeys("scheduled");
+            Thread.Sleep(500);
+            IWebElement scheduledTrigger = _driver.FindElement(By.CssSelector(".trigger-item"));
+            scheduledTrigger.Click();
+
+            IWebElement occursOption = _driver.FindElement(By.CssSelector(".mat-select-arrow-wrapper"));
+            occursOption.Click();
+            IWebElement dailyOption = _driver.FindElement(By.XPath("//span[contains(.,'Daily')]"));
+            dailyOption.Click();
+
+            IWebElement actionButton = _driver.FindElement(By.CssSelector("u4ek-flow-overview-step.cdk-drag-handle .step-body .mat-icon"));
+            actionButton.Click();
+            Thread.Sleep(500);
+            IWebElement ChangeActionButton = _driver.FindElement(By.XPath("//span[.='Change action']"));
+            ChangeActionButton.Click();
+            searchBox = _driver.FindElement(By.CssSelector("[placeholder='Search...']"));
+            searchBox.SendKeys("unit4id");
+            Thread.Sleep(500);
+            IWebElement unit4IDAction = _driver.FindElement(By.CssSelector(".action-detail"));
+            unit4IDAction.Click();
+
+            IWebElement parametersButton = _driver.FindElement(By.CssSelector(".fa-plus-square-o"));
+            parametersButton.Click();
+            IWebElement stepButton = _driver.FindElement(By.XPath("//button[.='step0']"));
+            stepButton.Click();
+      
+            IWebElement saveFlowButton = _driver.FindElement(By.XPath("//span[.='Save flow']"));
+            saveFlowButton.Click();
+            Thread.Sleep(500);
+
+            triggerButton.Click();
+            IWebElement triggerName = _driver.FindElement(By.XPath("//u4-wizard-step[2]//span[@class='title']"));
+            string trigger = triggerName.Text;
+            actionButton = _driver.FindElement(By.CssSelector("u4ek-flow-overview-step.cdk-drag-handle .text-container"));
+            actionButton.Click();
+            IWebElement actionName = _driver.FindElement(By.XPath("//u4-wizard-step[2]//span[@class='title']"));
+            string action = actionName.Text;
+
+            Assert.IsTrue(trigger == "Scheduled Event (v1)", "Trigger changes should be saved");
+            Assert.IsTrue(action == "Unit4Id Resolver (v1)", "Action changes should be saved");
+        }
+
+        [TestMethod]
+        public void TestFowHistory()
+        {
+            searchFlowByName("Autotest history");
+            _helpers.WaitForElementToAppear(20, ".flow-card--body-title:first-of-type", _driver);
+            IWebElement searchedFlow = _driver.FindElement(By.CssSelector(".flow-card--body-title:first-of-type"));
+            searchedFlow.Click();
+
+            _helpers.WaitForElementToBeInteractable(20, "div[title='History'] > .text-container", _driver);
+            IWebElement historyButton = _driver.FindElement(By.CssSelector("div[title='History'] > .text-container"));
+            historyButton.Click();
+
+            _helpers.WaitForElementToAppear(20, "div[infinite-scroll] > u4ek-flow-history-line:nth-of-type(1)", _driver);
+            var flowHistory = _driver.FindElements(By.CssSelector("div[infinite-scroll] > u4ek-flow-history-line"));
+            IWebElement lastExecution = _driver.FindElement(By.CssSelector("div[infinite-scroll] > u4ek-flow-history-line:nth-of-type(1)"));
+            lastExecution.Click();
+
+            _helpers.WaitForElementToAppear(20, "[placeholder='Flow run id']", _driver);
+            IWebElement runId = _driver.FindElement(By.CssSelector("[placeholder='Flow run id']"));
+            IWebElement triggerStep = _driver.FindElement(By.XPath("//span[.='Trigger']"));
+            IWebElement actionStep = _driver.FindElement(By.XPath("//span[.='Action']"));
+
+            Assert.IsTrue(triggerStep.Displayed, "Trigger step should be displayed");
+            Assert.IsTrue(actionStep.Displayed, "Action step should be displayed");
+            Assert.IsTrue(runId.Displayed, "There should be a run ID");
+            Assert.IsTrue(flowHistory.Count != 0, "Flow history must be populated");
+        }
     }
 }
+
